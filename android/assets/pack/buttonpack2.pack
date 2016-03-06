@@ -1,0 +1,40 @@
+
+buttonpack2.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+close_gray
+  rotate: false
+  xy: 1, 567
+  size: 306, 312
+  orig: 306, 312
+  offset: 0, 0
+  index: -1
+play_gray
+  rotate: false
+  xy: 1, 253
+  size: 306, 312
+  orig: 306, 312
+  offset: 0, 0
+  index: -1
+refresh_gray
+  rotate: false
+  xy: 309, 567
+  size: 306, 312
+  orig: 306, 312
+  offset: 0, 0
+  index: -1
+uparrow
+  rotate: false
+  xy: 1, 1
+  size: 250, 250
+  orig: 250, 250
+  offset: 0, 0
+  index: -1
+menubutton
+  rotate: false
+  xy: 309, 509
+  size: 55, 56
+  orig: 55, 56
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,124 @@
+package com.pl.dom;
+
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton.ImageButtonStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+
+public class MainMenu implements Screen {
+	
+	SpriteBatch batch = new SpriteBatch();
+	Stage stage = new Stage();
+    Table table = new Table();
+    TextureAtlas textureatlas;
+    Skin skin;
+    Texture menuBackgndTexure;
+    Sprite menuBackSprite;
+    Slider slider;
+    int antnum;
+    Sound sound;
+    ImageButton PlayButton, ExitButton;
+ 
+    @Override
+    public void render(float delta) {
+        Gdx.gl.glClearColor(1, 1, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        
+        batch.begin();
+        menuBackSprite.draw(batch);
+        batch.end();
+
+        stage.act();
+        stage.draw();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+    }
+
+    @Override
+    public void show() {    
+    	
+    	sound = Gdx.audio.newSound(Gdx.files.internal("sounds/main_sound.mp3"));
+    	sound.loop(.5f);
+
+    	textureatlas = new TextureAtlas(Gdx.files.internal("pack/button.pack"));
+    	skin = new Skin(textureatlas);
+    	
+    	ImageButtonStyle PlayButtonStyle = new ImageButtonStyle();		
+    	PlayButtonStyle.up = skin.getDrawable("Button Next");
+    	PlayButtonStyle.down = skin.getDrawable("Button Next");
+    	PlayButtonStyle.pressedOffsetX = 1;
+    	PlayButtonStyle.pressedOffsetY = -1;	
+    	PlayButton = new ImageButton(PlayButtonStyle);
+    	
+    	ImageButtonStyle ExitButtonStyle = new ImageButtonStyle();		
+    	ExitButtonStyle.up = skin.getDrawable("Button Close");
+    	ExitButtonStyle.down = skin.getDrawable("Button Close");
+    	ExitButtonStyle.pressedOffsetX = 1;
+    	ExitButtonStyle.pressedOffsetY = -1;
+    	ExitButton = new ImageButton(ExitButtonStyle);
+    	
+    	
+    	menuBackgndTexure = new Texture(Gdx.files.internal("title.png"));
+    	menuBackSprite = new Sprite(menuBackgndTexure);
+    	menuBackSprite.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+    	
+    	 PlayButton.addListener(new ClickListener(){
+             @Override
+             public void clicked(InputEvent event, float x, float y) {
+                 ((Game)Gdx.app.getApplicationListener()).setScreen(new TheGame());
+             }
+         });
+    	 
+    	 ExitButton.addListener(new ClickListener(){
+             @Override
+             public void clicked(InputEvent event, float x, float y) {
+                 Gdx.app.exit();
+             }
+         });
+
+         table.add(PlayButton).size(79,79).padBottom(10).row();
+         table.add(ExitButton).size(79,79).padBottom(10).row();
+
+         table.setFillParent(true);
+         stage.addActor(table);     
+         
+         Gdx.input.setInputProcessor(stage);
+         Gdx.input.setCatchBackKey(true);
+                 
+         
+    }
+
+    @Override
+    public void hide() {
+        dispose();
+    }
+
+   @Override
+   public void pause() {
+   }
+
+   @Override
+   public void resume() {
+   }
+
+   @Override
+   public void dispose() {
+       stage.dispose();
+       skin.dispose();
+   }
+}

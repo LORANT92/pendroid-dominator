@@ -1,0 +1,378 @@
+package com.pl.dom;
+
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton.ImageButtonStyle;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.math.Vector3;
+//import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import controllers.InputController;
+
+public class TheGame implements Screen {
+	
+	private static final int VIEWPORT_WIDTH = 600;
+    private static final int VIEWPORT_HEIGHT = 480;
+    
+	private SpriteBatch batch;
+	private Texture img;
+	private Texture img_y;
+	private ShapeRenderer sr;
+	private OrthographicCamera camera;
+    public static Texture backgroundTexture;
+    public static Sprite backgroundSprite;
+    public Skin skin;
+    private BitmapFont font;
+    public TextureAtlas buttonAtlas;
+    public Stage stage;
+    ImageButton ExitButton;
+    TextureAtlas textureatlas;
+
+    
+	public List<Point> nodes;
+	public List<Edge> edges;
+	
+	//public Sprite circle;
+	public Sprite kilepes;
+	public Sprite[] vertexSprite;
+	
+	static final int NODE_RADIUS = 30;
+	
+	static final int NODE_RADIUS_BIG = 30;
+	
+	private static final int MAX_VERTEX = 100;
+	
+	
+	 private void setupCamera() {
+	        camera = new OrthographicCamera(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+	        camera.position.set(camera.viewportWidth/2, camera.viewportHeight/2, 0f);
+	        camera.update();
+	 }
+	
+	
+	 private void setupCamera2() {
+	        camera = new OrthographicCamera(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+	        camera.position.set(camera.viewportWidth/2 - ((VIEWPORT_WIDTH-400)/2), camera.viewportHeight/2 - ((VIEWPORT_HEIGHT-400)/2), 0f);
+	        camera.update();
+	    }
+	
+	 
+	@Override
+	public void show() {
+		
+		batch = new SpriteBatch();
+		sr = new ShapeRenderer();
+        backgroundTexture = new Texture("background.jpg");
+        backgroundSprite =new Sprite(backgroundTexture);
+		
+		nodes = poissonDisc(400, 400, 100);
+		edges = simpleGraph(nodes);
+		
+		img = new Texture(Gdx.files.internal("circle_x.png"));
+		img_y = new Texture(Gdx.files.internal("circle_y.png"));
+		
+		vertexSprite = new Sprite[MAX_VERTEX];
+		//circle = new Sprite(img);
+		//circle.setSize(NODE_RADIUS, NODE_RADIUS);
+		
+		for(int i=0; i<MAX_VERTEX; i++){
+			vertexSprite[i] = new Sprite(img);
+			vertexSprite[i].setSize(NODE_RADIUS, NODE_RADIUS);
+			
+		}
+		
+		
+		
+		stage = new Stage();
+		font = new BitmapFont(Gdx.files.internal("font/font.fnt"),false);
+		
+    	textureatlas = new TextureAtlas(Gdx.files.internal("pack/button.pack"));
+    	skin = new Skin(textureatlas);
+        
+		
+    	ImageButtonStyle ExitButtonStyle = new ImageButtonStyle();		
+    	ExitButtonStyle.up = skin.getDrawable("Button Close");
+    	ExitButtonStyle.down = skin.getDrawable("Button Close");
+    	ExitButtonStyle.pressedOffsetX = 1;
+    	ExitButtonStyle.pressedOffsetY = -1;
+    	ExitButton = new ImageButton(ExitButtonStyle);
+    	ExitButton.setSize(49, 49);
+    	ExitButton.setPosition(550, 410);
+    	
+   	 	ExitButton.addListener(new ClickListener(){
+   	 		@Override
+         	public void clicked(InputEvent event, float x, float y) {
+        	 	Gdx.app.exit();
+   	 		}
+   	 	});
+    	
+    	
+        stage.addActor(ExitButton);
+        
+        
+		setupCamera();
+		
+		//Gdx.input.setInputProcessor(stage);
+        Gdx.input.setCatchBackKey(true);
+        
+        
+        
+        
+		Gdx.input.setInputProcessor(new InputController() {
+			
+			@Override
+			public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+				
+				float pointX, pointY;
+				
+				Vector3 touchPos = new Vector3();
+				touchPos.set(screenX, screenY, 0);
+				camera.unproject(touchPos);
+				
+				//System.out.print(touchPos.x + " " + touchPos.y + "\n");
+				
+					for (Point p : nodes) {
+			             for (Edge e : edges) {
+			            	 if ((p.x == e.p1.x && p.y == e.p1.y) || (p.x == e.p2.x && p.y == e.p2.y)) {
+				            		 
+				             //System.out.print((p.x - circle.getWidth()/2) + " " + (p.y - circle.getHeight()/2) + "\n");
+				            	for(int k=0; k<MAX_VERTEX; k++){	 	
+				            		 	if(touchPos.x <= p.x - vertexSprite[k].getWidth()/2 + NODE_RADIUS && touchPos.x >= p.x - vertexSprite[k].getWidth()/2 &&
+				            		 			touchPos.y <= p.y - vertexSprite[k].getHeight()/2 + NODE_RADIUS && touchPos.y >= p.y - vertexSprite[k].getHeight()/2 )
+				            		 	{	
+				            		 		vertexSprite[k].setSize(NODE_RADIUS_BIG, NODE_RADIUS_BIG);
+				            		 		vertexSprite[k].setTexture(img_y);
+				            		 	}
+				            		 
+				            	}
+				            	break;
+			            	 }	
+			            	 
+			             }
+			        }
+		  				
+
+				return super.touchDown(screenX, screenY, pointer, button);
+			}
+			
+			@Override
+			public boolean keyDown(int keycode){
+				if((keycode == Keys.ESCAPE) || (keycode == Keys.BACK)){
+					Gdx.app.exit();
+			    }
+			    return false;
+			}
+			
+			
+			
+
+		});		
+		
+	}
+	
+	 
+	@Override
+	public void render (float delta) {
+		Gdx.gl.glClearColor(1, 1, 1, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		
+	   	batch.begin();
+    	backgroundSprite.draw(batch);
+   		batch.end();
+
+   		//setupCamera2();
+   		
+		sr.setColor(Color.MAROON);
+		sr.setProjectionMatrix(camera.combined);
+		
+		sr.begin(ShapeType.Line.Filled);
+			for (Edge e : edges){
+				sr.rectLine(e.p1.x, e.p1.y, e.p2.x, e.p2.y, 5);
+			}
+		sr.end();
+		
+		sr.begin(ShapeType.Filled);
+		
+		for(int j=0; j<MAX_VERTEX; j++){
+		
+		 for (Point p : nodes) {
+             for (Edge e : edges) {
+                 if ((p.x == e.p1.x && p.y == e.p1.y) || (p.x == e.p2.x && p.y == e.p2.y)) { // 0 fokszámú csúcsok kiszûrése
+                	 batch.begin();
+                	 batch.setProjectionMatrix(camera.combined);
+                	 vertexSprite[j].setPosition(p.x - vertexSprite[j].getWidth()/2, p.y - vertexSprite[j].getHeight()/2);
+                	 vertexSprite[j].draw(batch);
+                	 batch.end();
+                  break;
+                 }
+             }
+         }
+		
+		 
+		}
+		 
+		sr.end();
+		
+		stage.draw();
+	}
+	
+	
+	public static List<Edge> simpleGraph(List<Point> nodes) {
+		int numEdges = nodes.size() * 2; // Élek számának megadása
+		List<Edge> edges = new ArrayList<Edge>(numEdges);
+		for (int i = 0; i < numEdges; i++) {
+			Point p1 = nodes.get((int) (Math.random() * nodes.size()));
+			Point p2 = nodes.get((int) (Math.random() * nodes.size()));
+			edges.add(new Edge(p1, p2));
+		}
+		
+		// hurkok törlése
+		for (int i = 0; i < edges.size(); i++) {
+			Edge e = edges.get(i);
+			if (e.p1.equals(e.p2))
+				edges.remove(i);
+		}
+		
+		// párhuzamosak törlése
+		for (int i = 0; i < edges.size(); i++) {
+			Edge e = edges.get(i);
+			for (int q = 0; q < edges.size(); q++) {
+				if (i == q)
+					continue;
+				Edge e2 = edges.get(q);
+				if (e.equals(e2))
+					edges.remove(q);
+			}
+		}
+		
+		return edges;
+	}
+	
+	public List<Point> poissonDisc(int width, int height, int minDist) {
+		final int try_points = 10;
+		final Rectangle bounds = new Rectangle(0, 0, width, height);
+		
+		Random r = new Random();
+		List<Point> samplePoints = new ArrayList<Point>();
+		
+		double cellSize = minDist / Math.sqrt(2);
+		Point[][] grid = new Point[(int) Math.ceil(height / cellSize)][(int) Math.ceil(width / cellSize)];
+		List<Point> processList = new ArrayList<Point>();
+		Point firstPoint = new Point(r.nextInt(width), r.nextInt(height));
+		processList.add(firstPoint);
+		samplePoints.add(firstPoint);
+		addToCell(firstPoint, cellSize, grid);
+		
+		while (!processList.isEmpty()) {
+			Point p = processList.remove(r.nextInt(processList.size()));
+			for (int i = 0; i < try_points; i++) {
+				Point newPoint = genAround(p, minDist);
+				if (bounds.contains(newPoint) && !inNeighborhood(grid, newPoint, minDist, cellSize)) {
+					processList.add(newPoint);
+					samplePoints.add(newPoint);
+					addToCell(newPoint, cellSize, grid);
+				}
+			}
+		}
+		return samplePoints;
+	}
+	
+	public static boolean inNeighborhood(Point[][] grid, Point point, double mindist, double cellSize) {
+		int gridX = (int) (point.x / cellSize);
+		int gridY = (int) (point.y / cellSize);
+		
+		ArrayList<Point> cellsAroundPoint = new ArrayList<Point>();
+		for (int x = -2; x <= 2; x++) {
+			for (int y = -2; y <= 2; y++) {
+				int xc = gridX + x;
+				int yc = gridY + y;
+				if (xc >= 0 && yc >= 0 && xc < grid.length && yc < grid[0].length)
+					cellsAroundPoint.add(new Point(xc, yc));
+			}
+		}
+		
+		for (int i = 0; i < cellsAroundPoint.size(); i++) {
+			Point p = cellsAroundPoint.get(i);
+			if (grid[p.y][p.x] != null && Math.hypot(grid[p.y][p.x].x - point.x, grid[p.y][p.x].y - point.y) < mindist)
+				return true;
+		}
+		return false;
+	}
+	
+	public static Point genAround(Point point, double mindist) {
+		double r1 = Math.random(); //0 és 1 közötti véletlenszerû szám
+		double r2 = Math.random();
+		double radius = mindist * (r1 + 1);
+		double angle = 2 * Math.PI * r2;
+		int newX = (int) (point.x + radius * Math.cos(angle));
+		int newY = (int) (point.y + radius * Math.sin(angle));
+		return new Point(newX, newY);
+	}
+	
+	public static void addToCell(Point p, double cellSize, Point[][] grid) {
+		int x = (int) (p.x / cellSize);
+		int y = (int) (p.y / cellSize);
+		grid[y][x] = p;
+	}
+	
+	public static class Edge {
+      
+      String name;
+		final Point p1, p2;
+		
+		Edge(Point q1, Point q2) {
+			p1 = q1;
+			p2 = q2;
+		}
+		
+		public boolean equals(Edge e) {
+			return e.p1.equals(p1) && e.p2.equals(p2);
+		}
+	}
+	
+    @Override
+    public void resize(int width, int height) {
+    }
+	
+    @Override
+    public void hide() {
+        dispose();
+    }
+
+   @Override
+   public void pause() {
+   }
+
+   @Override
+   public void resume() {
+   }
+
+   @Override
+   public void dispose() {
+       stage.dispose();
+       skin.dispose();
+   }
+
+
+}
